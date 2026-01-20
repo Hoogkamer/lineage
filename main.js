@@ -195,26 +195,32 @@ cy.nodeHtmlLabel([
     }
 ]);
 
+window.cy = cy;
+window.activeHighlightedItems = activeHighlightedItems;
+
 // Interaction handling
-document.body.addEventListener('click', (e) => {
+const cyContainer = document.getElementById('cy');
+cyContainer.addEventListener('click', (e) => {
     const itemRow = e.target.closest('.item-row');
+    console.log('Click detected on:', itemRow ? itemRow.getAttribute('data-item') : 'nothing');
+    
     if (itemRow) {
         const itemName = itemRow.getAttribute('data-item');
         
         if (activeHighlightedItems.has(itemName) && activeHighlightedItems.size === getAllConnected(itemName).size) {
-            // Un-highlight if clicking the same item (approximate check)
             activeHighlightedItems = new Set();
         } else {
             activeHighlightedItems = getAllConnected(itemName);
         }
         
-        // Force re-render of HTML labels
-        cy.nodes().data('lastUpdate', Date.now());
+        console.log('Active highlighted items:', Array.from(activeHighlightedItems));
+        
+        // Force re-render of HTML labels by triggering a data event
+        cy.nodes().emit('data');
     } else {
-        // Clear if clicking elsewhere
         if (activeHighlightedItems.size > 0) {
             activeHighlightedItems = new Set();
-            cy.nodes().data('lastUpdate', Date.now());
+            cy.nodes().emit('data');
         }
     }
 });
