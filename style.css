@@ -30,6 +30,7 @@ html {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+  pointer-events: auto; /* Enable clicks on the card */
 }
 
 .node-card:hover {
