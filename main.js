@@ -198,13 +198,15 @@ cy.nodeHtmlLabel([
 window.cy = cy;
 window.activeHighlightedItems = activeHighlightedItems;
 
-// Interaction handling
-const cyContainer = document.getElementById('cy');
-cyContainer.addEventListener('click', (e) => {
+// Interaction handling - use document and mousedown to avoid event interference
+document.addEventListener('mousedown', (e) => {
     const itemRow = e.target.closest('.item-row');
-    console.log('Click detected on:', itemRow ? itemRow.getAttribute('data-item') : 'nothing');
+    console.log('Mousedown detected on:', itemRow ? itemRow.getAttribute('data-item') : 'nothing', e.target);
     
     if (itemRow) {
+        e.preventDefault(); // Prevent any default behavior
+        e.stopPropagation(); // Stop event from bubbling
+        
         const itemName = itemRow.getAttribute('data-item');
         
         if (activeHighlightedItems.has(itemName) && activeHighlightedItems.size === getAllConnected(itemName).size) {
@@ -217,7 +219,8 @@ cyContainer.addEventListener('click', (e) => {
         
         // Force re-render of HTML labels by triggering a data event
         cy.nodes().emit('data');
-    } else {
+    } else if (e.target.closest('#cy') && !e.target.closest('.node-card')) {
+        // Only clear if clicking on the canvas background, not on a card
         if (activeHighlightedItems.size > 0) {
             activeHighlightedItems = new Set();
             cy.nodes().emit('data');

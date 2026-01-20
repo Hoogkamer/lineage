@@ -19,6 +19,15 @@ html {
   display: block;
 }
 
+/* Enable pointer events on all HTML label wrapper containers */
+#cy > div > div {
+  pointer-events: auto !important;
+}
+
+#cy > div > div > div {
+  pointer-events: auto !important;
+}
+
 /* Node Label Styles */
 .node-card {
   background: white;
@@ -90,7 +99,9 @@ html {
 }
 
 .item-row:hover {
-    background-color: #f8fafc;
+    background-color: #e0f2fe;
+    border-left: 3px solid #3b82f6;
+    padding-left: 7px; /* Compensate for border */
 }
 
 .item-row.highlighted {
