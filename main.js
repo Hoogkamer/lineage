@@ -55,6 +55,44 @@ const elements = [
     { data: { source: 'export_terminal', target: 'supermarket' } },
 ];
 
+const itemRelations = {
+    'croissant': ['wheat flour T55', 'butter', 'eggs', 'yeast'],
+    'baguette traditionnelle': ['wheat flour T55', 'yeast', 'levain starter'],
+    'pain au chocolat': ['wheat flour T45', 'butter', 'chocolate batons', 'yeast'],
+    'pâtisserie shipment': ['croissant', 'pain au chocolat'],
+    'baked goods shipment': ['baguette traditionnelle', 'pain au levain'],
+    'brioche': ['wheat flour T45', 'butter', 'eggs', 'yeast'],
+    'baguette': ['baguette traditionnelle'],
+    'sliced bread': ['wheat flour T55', 'yeast'],
+    'wheat flour T55': ['wheat grain'],
+    'wheat flour T45': ['soft wheat'],
+    'butter': ['whole milk', 'cream'],
+    'cream': ['whole milk']
+};
+
+let activeHighlightedItems = new Set();
+
+function getAllConnected(itemName) {
+    const visited = new Set();
+    const queue = [itemName];
+    while (queue.length > 0) {
+        const current = queue.shift();
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        if (itemRelations[current]) {
+            queue.push(...itemRelations[current]);
+        }
+        
+        for (const [parent, children] of Object.entries(itemRelations)) {
+            if (children.includes(current)) {
+                queue.push(parent);
+            }
+        }
+    }
+    return visited;
+}
+
 const cy = cytoscape({
     container: document.getElementById('cy'),
     elements: elements,
@@ -114,12 +152,18 @@ cy.nodeHtmlLabel([
         halignBox: 'center',
         valignBox: 'center',
         tpl: function (data) {
-            const itemsHtml = data.items ? data.items.map(item => `
-                <div class="item-row">
-                    <span class="item-name">${item.name}</span>
-                    <span class="item-value">${item.val}</span>
-                </div>
-            `).join('') : '';
+            const itemsHtml = data.items ? data.items.map(item => {
+                let statusClass = '';
+                if (activeHighlightedItems.size > 0) {
+                    statusClass = activeHighlightedItems.has(item.name) ? 'highlighted' : 'dimmed';
+                }
+                return `
+                    <div class="item-row ${statusClass}" data-item="${item.name}">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-value">${item.val}</span>
+                    </div>
+                `;
+            }).join('') : '';
 
             return `
                 <div class="node-card">
@@ -150,3 +194,27 @@ cy.nodeHtmlLabel([
         }
     }
 ]);
+
+// Interaction handling
+document.body.addEventListener('click', (e) => {
+    const itemRow = e.target.closest('.item-row');
+    if (itemRow) {
+        const itemName = itemRow.getAttribute('data-item');
+        
+        if (activeHighlightedItems.has(itemName) && activeHighlightedItems.size === getAllConnected(itemName).size) {
+            // Un-highlight if clicking the same item (approximate check)
+            activeHighlightedItems = new Set();
+        } else {
+            activeHighlightedItems = getAllConnected(itemName);
+        }
+        
+        // Force re-render of HTML labels
+        cy.nodes().data('lastUpdate', Date.now());
+    } else {
+        // Clear if clicking elsewhere
+        if (activeHighlightedItems.size > 0) {
+            activeHighlightedItems = new Set();
+            cy.nodes().data('lastUpdate', Date.now());
+        }
+    }
+});

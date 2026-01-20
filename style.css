@@ -78,15 +78,38 @@ html {
 }
 
 .item-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  padding: 4px 0;
-  border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 6px 10px;
+    margin: 0 -10px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.item-row:hover {
+    background-color: #f8fafc;
+}
+
+.item-row.highlighted {
+    background-color: #3b82f6 !important;
+}
+
+.item-row.highlighted .item-name {
+    color: white;
+}
+
+.item-row.highlighted .item-value {
+    color: white;
+}
+
+.item-row.dimmed {
+    opacity: 0.3;
 }
 
 .item-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .item-name {
